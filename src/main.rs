@@ -2,7 +2,7 @@ use anyhow::{Context, Ok, Result};
 use clap::Parser;
 use log::info;
 
-use crate::process::ProcessingCore;
+use crate::process::{Item, ProcessingCore};
 
 pub mod config;
 pub mod process;
@@ -36,9 +36,20 @@ fn main() -> Result<()> {
         proc.create_tmp_directory()?;
     }
 
-    if proc.process_items()? {
+    if proc.process_items(_process_item)? {
         info!(" Daje!")
     }
 
     Ok(())
+}
+
+fn _process_item(item: &Item) -> Result<bool> {
+    // define how to process a single item
+    info!(
+        "Processing {} {:?} -> {:?}",
+        item.name, item.input_item_path, item.output_item_path
+    );
+    // ...
+
+    Ok(true)
 }

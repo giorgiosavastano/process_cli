@@ -7,9 +7,9 @@ use std::{fs, io};
 
 #[derive(Debug)]
 pub struct Item {
-    name: String,
-    input_item_path: PathBuf,
-    output_item_path: PathBuf,
+    pub name: String,
+    pub input_item_path: PathBuf,
+    pub output_item_path: PathBuf,
 }
 
 #[derive(Debug)]
@@ -27,7 +27,9 @@ pub trait ProcessingCore {
     fn set_items(self: &mut Self) -> Result<()>;
     fn check_all_inputs_exist(self: &Self) -> Result<bool>;
     fn create_tmp_directory(self: &Self) -> Result<()>;
-    fn process_items(self: &Self) -> Result<bool>;
+    fn process_items<F>(self: &Self, f: F) -> Result<bool>
+    where
+        F: Fn(&Item) -> Result<bool> + Send + Sync;
 }
 
 impl ProcessingCore for Process {
@@ -81,15 +83,18 @@ impl ProcessingCore for Process {
         Ok(())
     }
 
-    fn process_items(self: &Self) -> Result<bool> {
+    fn process_items<F>(self: &Self, f: F) -> Result<bool>
+    where
+        F: Fn(&Item) -> Result<bool> + Send + Sync,
+    {
         info!("Process name {}", self.name);
 
         (self.items).par_iter().for_each(|i| {
-            let f = _process_item(i)
+            let fl = f(i)
                 .with_context(|| format!("could not process item `{}`", i.name))
                 .unwrap();
 
-            if f == false {
+            if fl == false {
                 let warn_description = format!("Process for {} not succesfull.", i.name);
                 warn!("Warning! {}!", warn_description);
             }
@@ -102,15 +107,4 @@ impl ProcessingCore for Process {
 fn _move_files(src: PathBuf, dst: PathBuf) -> Result<()> {
     fs::rename(src, dst)?;
     Ok(())
-}
-
-fn _process_item(item: &Item) -> Result<bool> {
-    // define how to process a single item
-    info!(
-        "Processing {} {:?} -> {:?}",
-        item.name, item.input_item_path, item.output_item_path
-    );
-    // ...
-
-    Ok(true)
 }

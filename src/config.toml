@@ -1,4 +1,4 @@
-input_path = "/Users/sysadmin/Develop/hrsm/"
-input_extension = "nc"
+input_path = "/Users/giorgiosavastano/Develop/process/src"
+input_extension = "rs"
 output_path = "/Users/sysadmin/Develop/hrsm/test"
 # tmp_dir_path = "/Users/sysadmin/Develop/hrsm/tmp"
